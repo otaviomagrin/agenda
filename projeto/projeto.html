@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Acompanhamento do Projeto - Agenda de Tarefas</title>
+    <style>
+        :root {
+            --bg: #F7FAFC;
+            --surface: #FFFFFF;
+            --text: #0F172A;
+            --text-muted: #475569;
+            --primary: #0F3D91;
+            --primary-contrast: #FFFFFF;
+            --accent: #C28F2C;
+            --accent-contrast: #0B1021;
+            --border: #E2E8F0;
+            --muted: #EEF2F6;
+            --success: #16A34A;
+            --warning: #F59E0B;
+            --danger: #DC2626;
+            --info: #2563EB;
+            --radius: 12px;
+            --space-1: 8px;
+            --space-2: 12px;
+            --space-3: 16px;
+            --space-4: 24px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: var(--space-4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--space-4);
+            padding: var(--space-4);
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--primary-contrast);
+            border-radius: var(--radius);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .overview-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: var(--space-4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .overview-card h3 {
+            color: var(--primary);
+            margin-bottom: var(--space-2);
+            font-size: 1.2rem;
+        }
+
+        .overview-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: var(--space-1);
+        }
+
+        .modules {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .module {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: var(--space-4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .module-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .module-title h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .module-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-badge.in-progress {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-badge.planned {
+            background: var(--info);
+            color: white;
+        }
+
+        .progress-section {
+            margin-bottom: var(--space-3);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-1);
+        }
+
+        .progress-label {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .progress-percentage {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--muted);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--accent));
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .feature-category {
+            background: var(--muted);
+            border-radius: 8px;
+            padding: var(--space-3);
+        }
+
+        .feature-category h4 {
+            color: var(--primary);
+            margin-bottom: var(--space-2);
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-1) 0;
+            font-size: 0.9rem;
+        }
+
+        .feature-item.completed {
+            color: var(--success);
+        }
+
+        .feature-item.extra {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .feature-item.planned {
+            color: var(--text-muted);
+        }
+
+        .feature-icon {
+            font-size: 1rem;
+        }
+
+        .module-description {
+            background: #f8fafc;
+            border-left: 4px solid var(--primary);
+            padding: var(--space-3);
+            margin-bottom: var(--space-3);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: var(--primary-contrast);
+            border: none;
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #0d3780;
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .module-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.history.back()">← Voltar</button>
+
+    <div class="container">
+        <header class="header">
+            <h1>📊 Acompanhamento do Projeto</h1>
+            <p>Sistema de Agenda de Tarefas - Desenvolvimento Modular</p>
+        </header>
+
+        <div class="overview">
+            <div class="overview-card">
+                <h3>📈 Progresso Geral</h3>
+                <div class="number">75%</div>
+                <p>Do projeto concluído</p>
+            </div>
+            <div class="overview-card">
+                <h3>🏗️ Módulos</h3>
+                <div class="number">3</div>
+                <p>Módulos planejados</p>
+            </div>
+            <div class="overview-card">
+                <h3>✅ Completos</h3>
+                <div class="number">1</div>
+                <p>Módulo finalizado</p>
+            </div>
+            <div class="overview-card">
+                <h3>🚀 Funcionalidades</h3>
+                <div class="number">35+</div>
+                <p>Features implementadas</p>
+            </div>
+        </div>
+
+        <div class="modules">
+            <!-- MÓDULO 1 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title">
+                        <h2>🟢 Módulo 1 - Sistema Base</h2>
+                    </div>
+                    <div class="module-status">
+                        <span class="status-badge completed">✅ COMPLETO</span>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-label">Progresso do Módulo</span>
+                        <span class="progress-percentage">100%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <div class="module-description">
+                    <strong>Objetivo:</strong> Criar a base funcional do sistema de agenda com interface moderna, notificações nativas e funcionalidades essenciais de produtividade.
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-category">
+                        <h4>🖥️ Aplicação Desktop</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Aplicativo Electron nativo
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Ícone na bandeja do sistema
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Instância única
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Minimizar para bandeja
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Atalho na área de trabalho
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>📋 Gerenciamento de Tarefas</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                CRUD completo de tarefas
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Categorização por tipo
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Sistema de prioridades
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Filtros inteligentes
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Busca em tempo real
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>🎨 Interface Moderna</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Design Navy & Gold
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Layout responsivo
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Sistema de abas
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Calendário dinâmico
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>🔔 Sistema de Notificações</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Notificações nativas Windows
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Lembretes automáticos
+                            </li>
+                            <li class="feature-item completed">
+                                <span class="feature-icon">✅</span>
+                                Alertas de prazo
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>⭐ EXTRAS Implementados</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item extra">
+                                <span class="feature-icon">🎯</span>
+                                Dashboard completo
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">⚡</span>
+                                Quick Add inteligente
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">⏱️</span>
+                                Timer Pomodoro
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">📊</span>
+                                Widgets de estatísticas
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">🕒</span>
+                                Timeline visual
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">🤝</span>
+                                Sistema de reuniões
+                            </li>
+                            <li class="feature-item extra">
+                                <span class="feature-icon">📡</span>
+                                API REST completa
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MÓDULO 2 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title">
+                        <h2>🟡 Módulo 2 - Integrações Externas</h2>
+                    </div>
+                    <div class="module-status">
+                        <span class="status-badge planned">📋 PLANEJADO</span>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-label">Progresso do Módulo</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="module-description">
+                    <strong>Objetivo:</strong> Implementar integrações com serviços externos para sincronização e backup, expandindo a funcionalidade do sistema.
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-category">
+                        <h4>📅 Integração Google Calendar</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Autenticação OAuth 2.0
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Sincronização bidirecional
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Import/Export de eventos
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Resolução de conflitos
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>💾 Sistema de Backup</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Backup automático local
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Backup na nuvem
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Restore de dados
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Versionamento
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>📱 Aplicativo Mobile (PWA)</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Progressive Web App
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Funcionamento offline
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Push notifications
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Sincronização com desktop
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>🔗 Integrações Adicionais</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Microsoft Outlook
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Slack/Teams
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Telegram Bot
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Webhooks personalizados
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MÓDULO 3 -->
+            <div class="module">
+                <div class="module-header">
+                    <div class="module-title">
+                        <h2>🔵 Módulo 3 - Recursos Avançados</h2>
+                    </div>
+                    <div class="module-status">
+                        <span class="status-badge planned">📋 PLANEJADO</span>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-label">Progresso do Módulo</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="module-description">
+                    <strong>Objetivo:</strong> Implementar recursos avançados de IA, automação e colaboração para transformar o sistema em uma solução empresarial completa.
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-category">
+                        <h4>🤖 Inteligência Artificial</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Assistente virtual integrado
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Análise preditiva de prazos
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Sugestões inteligentes
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Processamento de linguagem natural
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>🔄 Automação Avançada</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Workflows personalizados
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Triggers automáticos
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Integração com Zapier
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Scripts customizados
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>👥 Colaboração em Equipe</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Projetos compartilhados
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Sistema de permissões
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Chat integrado
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Comentários e anexos
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-category">
+                        <h4>📊 Analytics & Relatórios</h4>
+                        <ul class="feature-list">
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Dashboards personalizados
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Relatórios avançados
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Métricas de produtividade
+                            </li>
+                            <li class="feature-item planned">
+                                <span class="feature-icon">📋</span>
+                                Exportação de dados
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Atualizar progresso geral baseado nos módulos
+        function updateOverallProgress() {
+            const module1Progress = 100;
+            const module2Progress = 0;
+            const module3Progress = 0;
+
+            const overallProgress = Math.round((module1Progress + module2Progress + module3Progress) / 3);
+
+            // Atualizar card de progresso geral
+            const progressCard = document.querySelector('.overview-card .number');
+            if (progressCard) {
+                progressCard.textContent = `${overallProgress}%`;
+            }
+        }
+
+        // Animação das barras de progresso
+        function animateProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            updateOverallProgress();
+            setTimeout(animateProgressBars, 300);
+        });
+    </script>
+</body>
+</html>

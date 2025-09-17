@@ -1,0 +1,101 @@
+RESUMO DO PROJETO (Electron) PARA ADAPTAR O MÓDULO DE VOZ
+
+Objetivo
+- Integrar um “secretário” por voz ao app Electron (uso pessoal, não sempre ligado).
+- Fluxos principais: saudação ao abrir o app + health-check; press-to-talk para comandos rápidos; modo reunião (escutar/anotar); e execução segura de ações no app via um “script”/DSL.
+
+Arquitetura (alto nível)
+- App desktop em Electron.
+  - Main process: electron/main.js cria BrowserWindow e um servidor HTTP interno (Express) com várias rotas REST do app.
+  - Preload: electron/preload.js (exposição mínima ao renderer).
+  - Renderer/UI: index.html (UI principal) + app.js (lógica de UI e dados). Há também server.js na raiz (servidor web alternativo), mas o foco é o servidor dentro do Electron.
+- Dados locais: arquivos JSON em data/ e na raiz (tasks.json, projects.json, meetings.json). Backups em /backups.
+- Ícones/ativos: electron/*.ico|.png.
+
+Estado atual do Módulo de Voz (implementado)
+- UI: Botão de microfone na topbar (id="voice-btn").
+  - Comportamento: press-and-hold (pressione para gravar; solte para enviar). Para automaticamente se a janela perde foco ou fica oculta.
+  - Captura: MediaRecorder (audio/webm), envia base64 ao backend e reproduz TTS retornado (audio/mp3).
+- Backend (no Electron): rota POST /api/voice/assist
+  - Entrada: { audio: <base64>, mimeType: 'audio/webm', history: [], systemPrompt: null }
+  - Pipeline atual (OpenAI): STT (Whisper), LLM (gpt-4o-mini) para resposta curta, TTS (tts-1, voz "alloy"). Retorna { transcript, replyText, audio (base64), mimeType }.
+- Saúde/tempo: GET /api/time (para sincronização e checagem rápida).
+- Chave: OPENAI_API_KEY carregada no backend (não exposta ao renderer).
+- Dependências: pacote "openai" no package.json. Recomendado Node 20 LTS.
+
+Fluxos desejados (para outra IA adaptar/expandir)
+1) Saudação + Health-check ao abrir o app
+   - Sem microfone. TTS fala: “Bom dia/Boa tarde/Boa noite, chefe. (se primeira vez do dia) Como estão as coisas?”
+   - Em paralelo, health-check: arquivos de dados acessíveis, rotas internas ok (/api/time), módulo de backup, relógio ok, espaço em disco, etc.
+   - Ao concluir: TTS “Todos os sistemas estão operacionais. O que posso ajudar?” (ou lista breve de problemas, com sugestão de ação).
+   - Preferência para ligar/desligar este comportamento e faixa de silêncio (ex.: madrugada).
+
+2) Comandos rápidos por voz (press-to-talk)
+   - Já implementado. Melhorar prompts e contexto se necessário (systemPrompt/history) para maior naturalidade.
+   - Para ações que modificam dados, usar “DSL de comandos” (ver abaixo) + confirmação.
+
+3) Modo Reunião (“escute isso”)
+   - Objetivo: captar áudio contínuo, transcrever, resumir, destacar itens importantes com **negrito** (Markdown), e sinalizar ao final: “tudo anotado”.
+   - Desktop: ideal fazer dentro do Electron (captura mic ou desktop/system audio via desktopCapturer) com pipeline Realtime (STT contínuo + sumarização incremental + buffer de notas). 
+   - Mobile (via app ChatGPT Plus): viável abrir o app e usar voz, mas iniciar microfone sem interação é limitado pelo SO. As notas ficam no ChatGPT; trazer de volta ao app requer automação extra (Actions/webhook, quando disponível).
+
+4) Execução segura no app por “script/DSL”
+   - O agente (LLM) gera um JSON estrito que o app valida/mostra para confirmação antes de executar.
+   - Exemplo de contrato (sugestão):
+     { "action": "add_task", "title": "Ligar para X", "due": "2025-09-18", "priority": "alta", "tags": ["reunião"] }
+   - Ações típicas: add_task, update_task, add_project, add_meeting, set_priority, set_due_date, add_note, etc. (Whitelist).
+   - Renderer envia esse JSON a uma rota segura no backend (ex.: POST /api/agent/execute). Backend valida esquema e aplica nos JSONs de dados.
+
+Pontos para a IA Adaptar
+- Backend (electron/main.js):
+  - Ampliar /api/voice/assist para suportar history/systemPrompt/idioma/voz/TTS config.
+  - Criar /api/agent/execute com validação de esquema (ajustar ao DSL acordado).
+  - Criar /api/health (detalhada) para o health-check falado.
+  - Opcional: rotas para “meeting mode” (iniciar/parar, estado, dump de notas).
+- Frontend (index.html / app.js):
+  - Tratar saudação de abertura com fila de TTS (não sobrepor áudios). Guardar flag “primeira vez do dia”.
+  - Botão/atalho para “modo reunião” e UI mínima (status gravando, contador/indicador, botão parar, link para notas).
+  - Tela de confirmação para execução de scripts/DSL.
+- LLM/Prompting:
+  - System prompt para tom de secretário, bilíngue PT/EN, curto e objetivo; ao pedir ações no app, responder no DSL.
+  - Para “modo reunião”, template de resumo com itens importantes em **negrito** (Markdown) e seções (Decisões, Ações, Prazos, Donos).
+
+Arquivos relevantes (caminhos)
+- electron/main.js — janela principal + servidor Express interno (rotas do app e voz).
+- electron/preload.js — ponte mínima.
+- index.html — UI principal, inclui botão #voice-btn e script do assistente de voz.
+- app.js — lógicas da UI, calendário, tasks/projects, (pode replicar helpers de voz).
+- server.js (raiz) — servidor web alternativo (não principal no Electron).
+- package.json — scripts/dependências (inclui "openai").
+- data/data/*.json — dados (tasks.json, etc.). Também há *.json na raiz (tasks.json, projects.json, meetings.json).
+- backups/** — estrutura de backups.
+
+Ambiente e requisitos
+- Node: 20 LTS recomendado (Electron pode falhar no Node 22).
+- Windows: pasta no OneDrive pode travar node_modules (EPERM). Ideal pausar OneDrive ou mover o projeto para fora do OneDrive.
+- Variáveis: OPENAI_API_KEY (apenas backend). Não expor ao renderer.
+
+Segurança/Privacidade
+- Microfone só ativa no press-to-talk ou no “modo reunião” com indicação clara (ícone/estado/voz).
+- Toda ação que altera dados deve ser confirmada e usar o DSL (whitelist e validação de esquema).
+- Limitar tamanho de payloads de áudio (já há bodyParser.json({ limit: '25mb' })).
+
+Testes e validação (mínimo)
+- Instalar dependências, setar OPENAI_API_KEY, iniciar app, pressionar e falar — ver rodada STT → LLM → TTS.
+- Testar saudação na abertura + health-check com falhas simuladas.
+- Testar um JSON/DSL simples (add_task) com confirmação, gravar no arquivo correto e refletir na UI.
+
+Limitações atuais
+- Dependências ainda não instaladas (ambiente). Código do módulo de voz já está encaixado, aguardando install.
+- Sem “meeting mode” contínuo ainda (precisa implementar). Sem DSL/execução no backend ainda (só sugestão).
+
+Próximos passos sugeridos para o módulo de voz
+1) Regularizar ambiente (Node 20, fora do OneDrive), instalar deps.
+2) Implementar saudação/health-check com fila de TTS e flag “primeira vez do dia”.
+3) Definir e documentar o DSL v1 (ações, esquema JSON) + /api/agent/execute.
+4) Implementar “meeting mode” básico no desktop (captura mic → notas + negrito) e UI simples.
+5) Afinar prompts para naturalidade, PT/EN, e garantir respostas curtas e diretas.
+
+Observações finais
+- O uso é pontual (baixo custo) — manter tudo opcional/configurável.
+- Para celular com ChatGPT Plus: abrir via atalho e tocar para ativar voz; as notas ficam na conversa do GPT. Para trazer ao app, dependerá de automações futuras.

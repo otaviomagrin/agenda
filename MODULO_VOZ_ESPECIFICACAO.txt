@@ -1,0 +1,304 @@
+ESPECIFICAÇÃO COMPLETA DO MÓDULO DE VOZ - SISTEMA DE AGENDA ELECTRON
+========================================================================
+
+CONTEXTO DO PROJETO:
+O Sistema de Agenda é uma aplicação Electron completa para gerenciamento de tarefas e projetos com sincronização automática entre OneDrive e Google Drive. O módulo de voz é uma funcionalidade adicional que permite interação por comando de voz.
+
+ESTADO ATUAL DO MÓDULO DE VOZ:
+===============================
+
+LOCALIZAÇÃO NO CÓDIGO:
+- Arquivo: app.js (linhas 1243-1354)
+- Função principal: setupVoiceAssistant()
+- Botão na interface: ID "voice-btn" (presente no HTML)
+- API endpoint preparada: POST /api/voice/assist (não implementada no servidor ainda)
+
+IMPLEMENTAÇÃO ATUAL (FRONTEND):
+
+1. CONFIGURAÇÃO INICIAL:
+```javascript
+function setupVoiceAssistant() {
+    const btn = document.getElementById('voice-btn');
+    if (!btn) return;
+
+    btn.addEventListener('mousedown', startRecording);
+    btn.addEventListener('touchstart', startRecording);
+    btn.addEventListener('mouseup', stopRecordingAndSend);
+    btn.addEventListener('mouseleave', handleMouseLeaveStop);
+    btn.addEventListener('touchend', stopRecordingAndSend);
+}
+```
+
+2. GRAVAÇÃO DE ÁUDIO:
+- Usa navigator.mediaDevices.getUserMedia({ audio: true })
+- Formato: MediaRecorder com mimeType 'audio/webm'
+- Controle: Pressionar e manter para gravar, soltar para enviar
+- Estados visuais: 🎤 (normal), 🛑 (gravando), ⏳ (processando)
+
+3. PROCESSAMENTO:
+- Converte áudio para base64
+- Envia para API POST /api/voice/assist
+- Espera resposta com transcript e áudio de resposta
+- Reproduz áudio de resposta automaticamente
+
+4. INTERFACE VISUAL:
+- Botão com feedback visual durante estados
+- Cores: vermelho (gravando), amarelo (processando), normal (parado)
+- Tooltips informativos em cada estado
+
+ESTRUTURA ATUAL NO HTML:
+=========================
+
+LOCALIZAÇÃO DO BOTÃO:
+O botão de voz está integrado na interface principal, provavelmente na topbar ou sidebar (precisa verificar exato local no index.html).
+
+ONDE O MÓDULO SE INTEGRA NO PROJETO:
+====================================
+
+1. INICIALIZAÇÃO:
+- Chamado em app.js linha 90: setupVoiceAssistant()
+- Executado após carregamento completo do DOM
+- Tratamento de erro: try/catch que apenas avisa se falhar
+
+2. DEPENDÊNCIAS ATUAIS:
+- MediaRecorder API (suporte do navegador)
+- Fetch API para comunicação com servidor
+- Audio API para reproduzir respostas
+- FileReader para conversão base64
+
+3. INTEGRAÇÃO COM O SISTEMA:
+- Acesso às variáveis globais: tasks, projects, projectTasks
+- Potencial para criar/modificar tarefas por voz
+- Potencial para consultar dados do calendário
+- Acesso ao API_URL para comunicação
+
+O QUE PRECISA SER IMPLEMENTADO (BACKEND):
+==========================================
+
+1. ROTA NO SERVIDOR (server.js):
+```javascript
+app.post('/api/voice/assist', async (req, res) => {
+    // Implementar aqui:
+    // - Receber áudio base64
+    // - Converter para formato adequado
+    // - Enviar para serviço de STT (Speech-to-Text)
+    // - Processar comando reconhecido
+    // - Gerar resposta inteligente
+    // - Converter resposta para áudio (TTS)
+    // - Retornar JSON com transcript e áudio
+});
+```
+
+2. ESTRUTURA ESPERADA DA REQUISIÇÃO:
+```json
+{
+    "audio": "base64_encoded_audio_data",
+    "mimeType": "audio/webm",
+    "history": [],
+    "systemPrompt": null
+}
+```
+
+3. ESTRUTURA ESPERADA DA RESPOSTA:
+```json
+{
+    "transcript": "texto reconhecido do usuário",
+    "replyText": "resposta textual do assistente",
+    "audio": "base64_audio_resposta",
+    "mimeType": "audio/mpeg"
+}
+```
+
+FUNCIONALIDADES QUE O MÓDULO DE VOZ DEVE SUPORTAR:
+===================================================
+
+1. COMANDOS DE CONSULTA:
+- "Quais são minhas tarefas de hoje?"
+- "Tenho algum projeto com prazo próximo?"
+- "Mostre minha agenda desta semana"
+- "Quantas tarefas pendentes eu tenho?"
+
+2. COMANDOS DE CRIAÇÃO:
+- "Criar uma tarefa para amanhã às 14h"
+- "Adicionar reunião para sexta-feira"
+- "Lembrar de comprar leite hoje"
+- "Novo projeto com prazo para o mês que vem"
+
+3. COMANDOS DE MODIFICAÇÃO:
+- "Marcar tarefa X como concluída"
+- "Mover tarefa Y para amanhã"
+- "Alterar prioridade da tarefa Z para alta"
+- "Cancelar reunião de terça-feira"
+
+4. COMANDOS DE NAVEGAÇÃO:
+- "Abrir calendário"
+- "Mostrar dashboard"
+- "Ir para projetos"
+- "Ver tarefas pendentes"
+
+DADOS DISPONÍVEIS PARA O ASSISTENTE:
+====================================
+
+VARIÁVEIS GLOBAIS ACESSÍVEIS:
+- tasks[] - Array com todas as tarefas
+- projects[] - Array com todos os projetos
+- projectTasks[] - Array com tarefas de projetos
+- recurringTasks[] - Array com tarefas recorrentes
+- currentFilter - Filtro atual das tarefas
+- currentDate - Data atual
+- calendarDate - Data do calendário sendo visualizada
+
+FUNÇÕES DISPONÍVEIS PARA AUTOMAÇÃO:
+- saveTask(task) - Criar nova tarefa
+- updateTask(id, updates) - Atualizar tarefa existente
+- saveProject(project) - Criar novo projeto
+- updateProject(projectData) - Atualizar projeto
+- loadTasks() - Recarregar tarefas
+- loadProjects() - Recarregar projetos
+- showView(viewName) - Navegar entre telas
+- renderCalendar() - Atualizar calendário
+
+TECNOLOGIAS SUGERIDAS PARA IMPLEMENTAÇÃO:
+=========================================
+
+1. SPEECH-TO-TEXT (STT):
+- Google Cloud Speech-to-Text API
+- Azure Cognitive Services Speech
+- AWS Transcribe
+- OpenAI Whisper (local ou API)
+- Web Speech API (limitado mas gratuito)
+
+2. PROCESSAMENTO DE LINGUAGEM NATURAL:
+- OpenAI GPT-4 para entender intenções
+- Google Dialogflow
+- Microsoft LUIS
+- Processamento local com bibliotecas NLP
+
+3. TEXT-TO-SPEECH (TTS):
+- Google Cloud Text-to-Speech
+- Azure Cognitive Services Speech
+- AWS Polly
+- OpenAI TTS
+- Web Speech API (speechSynthesis)
+
+4. BIBLIOTECAS ÚTEIS:
+- multer (upload de arquivos)
+- fluent-ffmpeg (conversão de áudio)
+- node-wav (manipulação WAV)
+- compromise (NLP em JavaScript)
+
+FLUXO COMPLETO PROPOSTO:
+========================
+
+1. USUÁRIO PRESSIONA BOTÃO DE VOZ
+2. FRONTEND GRAVA ÁUDIO (já implementado)
+3. FRONTEND CONVERTE PARA BASE64 (já implementado)
+4. FRONTEND ENVIA PARA /api/voice/assist (já implementado)
+
+5. BACKEND RECEBE ÁUDIO (precisa implementar)
+6. BACKEND CONVERTE ÁUDIO PARA FORMATO ADEQUADO (implementar)
+7. BACKEND ENVIA PARA SERVIÇO STT (implementar)
+8. BACKEND RECEBE TRANSCRIPT (implementar)
+
+9. BACKEND ANALISA INTENÇÃO DO COMANDO (implementar)
+10. BACKEND EXECUTA AÇÃO CORRESPONDENTE (implementar):
+    - Consulta dados existentes
+    - Cria/modifica tarefas ou projetos
+    - Prepara resposta adequada
+
+11. BACKEND GERA RESPOSTA TEXTUAL (implementar)
+12. BACKEND CONVERTE RESPOSTA PARA ÁUDIO (TTS) (implementar)
+13. BACKEND RETORNA JSON COM DADOS (implementar)
+
+14. FRONTEND RECEBE RESPOSTA (já implementado)
+15. FRONTEND REPRODUZ ÁUDIO (já implementado)
+16. FRONTEND ATUALIZA INTERFACE SE NECESSÁRIO (pode precisar implementar)
+
+EXEMPLOS DE IMPLEMENTAÇÃO NECESSÁRIA:
+=====================================
+
+1. PARSER DE COMANDOS:
+```javascript
+function parseVoiceCommand(transcript) {
+    const command = transcript.toLowerCase();
+
+    if (command.includes('criar tarefa') || command.includes('nova tarefa')) {
+        return { action: 'create_task', data: extractTaskData(transcript) };
+    }
+
+    if (command.includes('tarefas de hoje')) {
+        return { action: 'list_today_tasks', data: {} };
+    }
+
+    // ... mais comandos
+}
+```
+
+2. EXECUTOR DE AÇÕES:
+```javascript
+async function executeVoiceAction(action, data) {
+    switch(action) {
+        case 'create_task':
+            return await createTaskFromVoice(data);
+        case 'list_today_tasks':
+            return await getTodayTasks();
+        // ... mais ações
+    }
+}
+```
+
+CONSIDERAÇÕES TÉCNICAS:
+=======================
+
+1. FORMATO DE ÁUDIO:
+- Frontend grava em webm
+- Pode precisar converter para wav/mp3 para APIs
+- Considerar compressão para reduzir dados
+
+2. LATÊNCIA:
+- STT pode demorar 2-5 segundos
+- TTS adiciona mais 1-3 segundos
+- Interface deve mostrar progresso
+
+3. CUSTO:
+- APIs comerciais cobram por minuto de áudio
+- Considerar limites de uso
+- Implementar caching quando possível
+
+4. PRIVACIDADE:
+- Áudio enviado para serviços externos
+- Considerar implementação local se sensível
+- Informar usuário sobre envio de dados
+
+5. TRATAMENTO DE ERROS:
+- Falha na conexão de internet
+- Áudio inaudível ou muito baixo
+- Comandos não reconhecidos
+- Falha nos serviços externos
+
+ESTRUTURA DE ARQUIVOS SUGERIDA:
+===============================
+
+voice/
+├── voice-processor.js     - Processamento principal
+├── stt-service.js         - Integração Speech-to-Text
+├── tts-service.js         - Integração Text-to-Speech
+├── command-parser.js      - Análise de comandos
+├── action-executor.js     - Execução de ações
+└── audio-converter.js     - Conversão de formatos
+
+PRÓXIMOS PASSOS PARA IMPLEMENTAÇÃO:
+===================================
+
+1. IMPLEMENTAR ROTA BÁSICA EM server.js
+2. ESCOLHER SERVIÇOS STT/TTS (recomendo OpenAI para começar)
+3. IMPLEMENTAR CONVERSÃO DE ÁUDIO
+4. CRIAR PARSER BÁSICO DE COMANDOS
+5. IMPLEMENTAR AÇÕES SIMPLES (consultas primeiro)
+6. ADICIONAR CRIAÇÃO/MODIFICAÇÃO DE DADOS
+7. IMPLEMENTAR TTS PARA RESPOSTAS
+8. ADICIONAR TRATAMENTO DE ERROS
+9. OTIMIZAR PERFORMANCE E UX
+10. TESTES EXTENSIVOS COM USUÁRIOS REAIS
+
+ESTADO ATUAL: 40% IMPLEMENTADO (Frontend pronto, Backend necessário)

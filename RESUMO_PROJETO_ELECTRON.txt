@@ -1,0 +1,220 @@
+RESUMO DO PROJETO ELECTRON - SISTEMA DE AGENDA
+==============================================
+
+DESCRIÇÃO GERAL:
+Sistema de agenda completo desenvolvido em Electron com Node.js, Express e tecnologias web (HTML, CSS, JavaScript).
+O aplicativo permite gerenciar tarefas, projetos, e possui sincronização automática com OneDrive e Google Drive.
+
+ARQUITETURA DO PROJETO:
+├── AGENDA.bat                  - Executável principal com instalação automática
+├── main.js                    - Processo principal do Electron
+├── server.js                  - Servidor Express para APIs
+├── index.html                 - Interface principal da aplicação
+├── app.js                     - Lógica JavaScript principal do frontend
+├── sync-manager.js            - Módulo de sincronização com nuvens
+├── sync-integration.js        - Integração da sincronização com o app
+├── package.json               - Dependências e configurações Node.js
+└── electron/                  - Recursos específicos do Electron
+    ├── agenda.ico             - Ícone da aplicação
+    └── main.js                - Configurações específicas do Electron
+
+FUNCIONALIDADES PRINCIPAIS:
+
+1. GERENCIAMENTO DE TAREFAS:
+   - Criação, edição e exclusão de tarefas
+   - Categorização por prioridade (alta, média, baixa)
+   - Definição de data, hora e lembretes
+   - Filtros por status (pendente, concluída, hoje)
+   - Notificações automáticas para lembretes
+
+2. GERENCIAMENTO DE PROJETOS:
+   - Criação de projetos com prazo e progresso
+   - Tarefas vinculadas a projetos específicos
+   - Acompanhamento de deadlines
+   - Visualização de progresso percentual
+
+3. CALENDÁRIO INTERATIVO:
+   - Visualização mensal com navegação
+   - Indicadores visuais para dias com tarefas/projetos
+   - Modal com detalhes do dia selecionado
+   - Interface acessível para dislexia (cores e contrastes)
+
+4. DASHBOARD DE 60 DIAS:
+   - Visão geral dos próximos 60 dias
+   - Timeline de eventos importantes
+   - Cronograma de viagens
+   - Gráfico de carga de trabalho por semana
+   - Projetos com prazos próximos
+
+5. SINCRONIZAÇÃO AUTOMÁTICA:
+   - Detecção automática do OneDrive e Google Drive
+   - Criação de pasta "AgendaDB" em cada nuvem
+   - Sincronização a cada 5 minutos
+   - Resolução automática de conflitos
+   - Backup local antes de sobrescrever dados
+
+6. ASSISTENTE DE VOZ:
+   - Gravação por pressionamento do botão
+   - Integração com APIs de voz (preparado para IA)
+   - Interface intuitiva com feedback visual
+
+TECNOLOGIAS UTILIZADAS:
+
+Backend:
+- Node.js v22.17.1
+- Express.js (servidor web)
+- fs/fs.promises (sistema de arquivos)
+- CORS (política de origem cruzada)
+- Body-parser (processamento de dados)
+
+Frontend:
+- HTML5 semântico
+- CSS3 com variáveis customizadas
+- JavaScript ES6+ (async/await, fetch API)
+- Interface responsiva e acessível
+
+Electron:
+- BrowserWindow para janela principal
+- Menu personalizado
+- Notificações nativas
+- Integração com sistema operacional
+
+ESTRUTURA DE DADOS:
+
+Tarefas (tasks):
+{
+  id: number,
+  title: string,
+  description: string,
+  date: string (YYYY-MM-DD),
+  time: string (HH:MM),
+  priority: string (high/medium/low),
+  category: string,
+  completed: boolean,
+  reminder: boolean,
+  isProjectTask: boolean (opcional),
+  projectId: number (opcional)
+}
+
+Projetos (projects):
+{
+  id: number,
+  title: string,
+  description: string,
+  startDate: string,
+  deadline: string,
+  progress: number (0-100),
+  priority: string
+}
+
+Metadados de Sincronização:
+{
+  _syncMetadata: {
+    lastSync: string (ISO timestamp),
+    deviceName: string,
+    syncVersion: string
+  }
+}
+
+INSTALAÇÃO E CONFIGURAÇÃO:
+
+1. PRIMEIRA EXECUÇÃO:
+   - O AGENDA.bat detecta se é primeira execução
+   - Solicita permissões administrativas automaticamente
+   - Instala dependências via npm install
+   - Cria estrutura de pastas necessárias
+   - Configura atalhos na área de trabalho e menu iniciar
+
+2. INICIALIZAÇÃO:
+   - Verifica Node.js instalado
+   - Inicia servidor Express na porta 3001
+   - Detecta automaticamente OneDrive e Google Drive
+   - Inicializa sincronização automática se nuvens disponíveis
+   - Abre interface Electron
+
+3. SINCRONIZAÇÃO:
+   - Detecta caminhos: C:\Users\[USER]\OneDrive e G:\My Drive
+   - Cria pastas AgendaDB em cada nuvem
+   - Arquivo principal: agenda_database.json
+   - Backup automático antes de modificações
+   - Logs detalhados de todas as operações
+
+APIS DISPONÍVEIS:
+
+Tarefas:
+- GET /api/tasks - Listar todas as tarefas
+- POST /api/tasks - Criar nova tarefa
+- PUT /api/tasks/:id - Atualizar tarefa
+- DELETE /api/tasks/:id - Excluir tarefa
+
+Projetos:
+- GET /api/projects - Listar projetos
+- POST /api/projects - Criar projeto
+- PUT /api/projects/:id - Atualizar projeto
+- DELETE /api/projects/:id - Excluir projeto
+
+Sincronização:
+- GET /api/sync/status - Status da sincronização
+- POST /api/sync/force - Forçar sincronização
+- POST /api/sync/resolve-conflicts - Resolver conflitos
+- POST /api/sync/toggle - Ativar/desativar sync automática
+
+CARACTERÍSTICAS TÉCNICAS:
+
+1. GERENCIAMENTO DE ESTADO:
+   - Variáveis globais para dados (tasks, projects, etc.)
+   - Sincronização em tempo real entre views
+   - Atualização automática da interface
+
+2. TRATAMENTO DE ERROS:
+   - Try-catch em todas as operações assíncronas
+   - Fallbacks para localStorage quando APIs falham
+   - Logs detalhados para debug
+
+3. INTERFACE RESPONSIVA:
+   - CSS Grid e Flexbox
+   - Variáveis CSS para temas
+   - Componentes modulares
+
+4. SEGURANÇA:
+   - Validação de dados no frontend e backend
+   - Sanitização de inputs
+   - Permissões específicas para arquivos
+
+PONTOS DE INTEGRAÇÃO PARA MÓDULOS:
+
+1. NOVOS TIPOS DE DADOS:
+   - Adicionar em loadData(), saveData()
+   - Criar APIs correspondentes em server.js
+   - Atualizar estrutura de sincronização
+
+2. NOVAS VIEWS:
+   - Adicionar em showView() function
+   - Criar container HTML correspondente
+   - Implementar lógica de renderização
+
+3. EXTENSÕES DE SINCRONIZAÇÃO:
+   - Modificar sync-manager.js para novos serviços
+   - Atualizar detectCloudPaths() para novos provedores
+   - Expandir estrutura de metadados
+
+4. INTEGRAÇÕES EXTERNAS:
+   - Usar fetch API para comunicação
+   - Adicionar rotas em server.js
+   - Implementar tratamento de erros apropriado
+
+ARQUIVOS DE CONFIGURAÇÃO:
+
+package.json - Dependências principais:
+- electron: ^33.0.0
+- express: ^4.21.0
+- cors: ^2.8.5
+- body-parser: ^1.20.3
+
+OBSERVAÇÕES IMPORTANTES:
+- Sistema preparado para múltiplos dispositivos
+- Estrutura modular permite fácil extensão
+- Interface acessível seguindo padrões WCAG
+- Logs detalhados facilitam debug e manutenção
+- Backup automático previne perda de dados
+- Sincronização robusta com detecção de conflitos

@@ -1,0 +1,119 @@
+[
+  {
+    "title": "✈️ Voo BSB → GRU - LA3264",
+    "description": "Viagem: Brasília para São Paulo\nVoo: LA3264 - Latam Airlines\nSaída: 12:35 - Brasília (BSB)\nChegada: 14:15 - Guarulhos (GRU)\nDuração: 1h 40min\nAeronave: Airbus 321",
+    "date": "2025-10-01",
+    "time": "12:35",
+    "duration": 100,
+    "location": "Aeroporto de Brasília (BSB)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 1
+  },
+  {
+    "title": "✈️ Voo GRU → ORD - UA 844",
+    "description": "Viagem Internacional: São Paulo para Chicago\nVoo: UA 844 - United Airlines\nSaída: 22:20 - Guarulhos (GRU)\nChegada: 06:45+1 - Chicago O'Hare (ORD)\nDuração: 10h 25min\nAeronave: Boeing 787-10 Dreamliner",
+    "date": "2025-10-01",
+    "time": "22:20",
+    "duration": 625,
+    "location": "Aeroporto de Guarulhos (GRU)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 2
+  },
+  {
+    "title": "✈️ Voo ORD → LAX - UA 378",
+    "description": "Conexão: Chicago para Los Angeles\nVoo: UA 378 - United Airlines\nSaída: 14:35 - Chicago O'Hare (ORD)\nChegada: 17:03 - Los Angeles (LAX)\nDuração: 4h 28min\nAeronave: Airbus A321neo",
+    "date": "2025-10-02",
+    "time": "14:35",
+    "duration": 268,
+    "location": "Chicago O'Hare (ORD)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 3
+  },
+  {
+    "title": "✈️ Voo LAX → HKG - UA 152",
+    "description": "Voo Longo: Los Angeles para Hong Kong\nVoo: UA 152 - United Airlines\nSaída: 23:15 - Los Angeles (LAX)\nChegada: 05:40+2 - Hong Kong (HKG)\nDuração: 15h 25min\nAeronave: Boeing 787-9 Dreamliner",
+    "date": "2025-10-02",
+    "time": "23:15",
+    "duration": 925,
+    "location": "Los Angeles (LAX)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 4
+  },
+  {
+    "title": "✈️ Voo HKG → SFO - UA 862",
+    "description": "Viagem de Volta: Hong Kong para San Francisco\nVoo: UA 862 - United Airlines\nSaída: 10:35 - Hong Kong (HKG)\nChegada: 07:00 - San Francisco (SFO)\nDuração: 12h 25min\nAeronave: Boeing 777-300ER",
+    "date": "2025-11-10",
+    "time": "10:35",
+    "duration": 745,
+    "location": "Hong Kong (HKG)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 5
+  },
+  {
+    "title": "✈️ Voo SFO → IAH - UA 277",
+    "description": "Conexão: San Francisco para Houston\nVoo: UA 277 - United Airlines\nSaída: 09:10 - San Francisco (SFO)\nChegada: 15:02 - Houston (IAH)\nDuração: 3h 52min\nAeronave: Boeing 757-300",
+    "date": "2025-11-10",
+    "time": "09:10",
+    "duration": 232,
+    "location": "San Francisco (SFO)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 6
+  },
+  {
+    "title": "✈️ Voo IAH → GRU - UA 62",
+    "description": "Último Voo: Houston para São Paulo\nVoo: UA 62 - United Airlines\nSaída: 20:45 - Houston (IAH)\nChegada: 09:30+1 - Guarulhos (GRU)\nDuração: 9h 45min\nAeronave: Boeing 787-9 Dreamliner",
+    "date": "2025-11-10",
+    "time": "20:45",
+    "duration": 585,
+    "location": "Houston (IAH)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 7
+  },
+  {
+    "title": "✈️ Voo GRU → BSB - LA3257",
+    "description": "Chegada Final: São Paulo para Brasília\nVoo: LA3257 - Latam Airlines\nSaída: 16:25 - Guarulhos (GRU)\nChegada: 18:10 - Brasília (BSB)\nDuração: 1h 45min\nAeronave: Airbus 321",
+    "date": "2025-11-11",
+    "time": "16:25",
+    "duration": 105,
+    "location": "Guarulhos (GRU)",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 8
+  },
+  {
+    "title": "?? Teste Voo Hoje",
+    "description": "Voo de teste para verificar dashboard",
+    "date": "2025-09-16",
+    "time": "16:00",
+    "duration": 120,
+    "location": "Aeroporto Teste",
+    "participants": [
+      "Passageiro"
+    ],
+    "type": "viagem",
+    "id": 1757994143162
+  }
+]

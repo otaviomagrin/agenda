@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Tarefas</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        .view-container {
+            display: none;
+        }
+        
+        .view-container.active {
+            display: block;
+        }
+        
+        .content {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Calendário */
+        .calendar-section {
+            margin-bottom: 30px;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .calendar-nav button {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        .calendar-nav button:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+        
+        .month-year {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-top: 15px;
+        }
+        
+        .calendar-header {
+            background: #667eea;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        
+        .calendar-day {
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 45px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            background: #e2e8f0;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .calendar-day.today {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .calendar-day.other-month {
+            opacity: 0.3;
+            color: #999;
+        }
+        
+        .calendar-day.has-tasks::after {
+            content: '';
+            position: absolute;
+            bottom: 3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff6b6b;
+            opacity: 1;
+        }
+        
+        /* Tarefas */
+        .tasks-section {
+            margin-top: 20px;
+        }
+        
+        .task-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+        
+        .task-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-info h3 {
+            color: #333;
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+        }
+        
+        .task-info p {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .complete-btn {
+            background: #4ecdc4;
+            color: white;
+        }
+        
+        .delete-btn {
+            background: #ff6b6b;
+            color: white;
+        }
+        
+        /* Formulários */
+        .form-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .test-area {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f4f8;
+            border-radius: 10px;
+            border-left: 4px solid #4ecdc4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Sistema de Organização</h1>
+            <p>Gerencie suas tarefas e projetos de forma eficiente</p>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn active" id="btn-dashboard">📊 Dashboard</button>
+            <button class="nav-btn" id="btn-tasks">➕ Tarefas</button>
+            <button class="nav-btn" id="btn-projects">📁 Projetos</button>
+        </div>
+        
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view-container active">
+            <div class="content">
+                <div class="calendar-section">
+                    <div class="calendar-nav">
+                        <button id="prev-month">‹</button>
+                        <div class="month-year" id="current-month">Janeiro 2025</div>
+                        <button id="next-month">›</button>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Cabeçalhos dos dias da semana -->
+                        <div class="calendar-header">DOM</div>
+                        <div class="calendar-header">SEG</div>
+                        <div class="calendar-header">TER</div>
+                        <div class="calendar-header">QUA</div>
+                        <div class="calendar-header">QUI</div>
+                        <div class="calendar-header">SEX</div>
+                        <div class="calendar-header">SÁB</div>
+                        <!-- Dias serão gerados pelo JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="tasks-section">
+                    <h3>📋 Tarefas Recentes</h3>
+                    <div id="recent-tasks"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks View -->
+        <div id="tasks-view" class="view-container">
+            <div class="content">
+                <h2>➕ Nova Tarefa</h2>
+                
+                <div class="form-container">
+                    <form id="task-form">
+                        <div class="form-group">
+                            <label for="task-title">Título</label>
+                            <input type="text" id="task-title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-description">Descrição</label>
+                            <textarea id="task-description"></textarea>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-date">Data</label>
+                                <input type="date" id="task-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="task-time">Horário</label>
+                                <input type="time" id="task-time" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="task-priority">Prioridade</label>
+                                <select id="task-priority">
+                                    <option value="low">Baixa</option>
+                                    <option value="medium" selected>Média</option>
+                                    <option value="high">Alta</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="task-category">Categoria</label>
+                                <input type="text" id="task-category" placeholder="Ex: Trabalho, Pessoal">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn">Adicionar Tarefa</button>
+                    </form>
+                </div>
+                
+                <div class="tasks-section">
+                    <h3>📋 Todas as Tarefas</h3>
+                    <div id="all-tasks"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Projects View -->
+        <div id="projects-view" class="view-container">
+            <div class="content">
+                <h2>📁 Projetos</h2>
+                <p>Em desenvolvimento...</p>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script>
+        console.log('Step 3 script loading...');
+        
+        // Configuração da API
+        const API_URL = 'http://localhost:3001/api';
+        
+        // Elementos
+        const btnDashboard = document.getElementById('btn-dashboard');
+        const btnTasks = document.getElementById('btn-tasks');
+        const btnProjects = document.getElementById('btn-projects');
+        const prevMonth = document.getElementById('prev-month');
+        const nextMonth = document.getElementById('next-month');
+        const currentMonth = document.getElementById('current-month');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const taskForm = document.getElementById('task-form');
+        const recentTasks = document.getElementById('recent-tasks');
+        const allTasks = document.getElementById('all-tasks');
+        
+        // Views
+        const dashboardView = document.getElementById('dashboard-view');
+        const tasksView = document.getElementById('tasks-view');
+        const projectsView = document.getElementById('projects-view');
+        
+        // Variáveis
+        let currentDate = new Date();
+        let tasks = [];
+        const months = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        
+        // Funções utilitárias
+        function logMessage(message) {
+            console.log(message);
+        }
+        
+        // Função para mostrar views
+        function showView(viewName) {
+            console.log('Showing view:', viewName);
+            
+            // Esconder todas as views
+            [dashboardView, tasksView, projectsView].forEach(view => {
+                if (view) view.classList.remove('active');
+            });
+            
+            // Mostrar view selecionada
+            const viewMap = {
+                'dashboard': dashboardView,
+                'tasks': tasksView,
+                'projects': projectsView
+            };
+            
+            if (viewMap[viewName]) {
+                viewMap[viewName].classList.add('active');
+            }
+            
+            logMessage(`View ${viewName} ativada`);
+        }
+        
+        function setActiveButton(activeBtn) {
+            [btnDashboard, btnTasks, btnProjects].forEach(btn => {
+                if (btn) btn.classList.remove('active');
+            });
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+        
+        // API Functions
+        async function testAPI() {
+            try {
+                updateOutput('Testando conexão com API...');
+                apiStatus.textContent = 'Conectando...';
+                
+                const response = await fetch(`${API_URL}/tasks`);
+                if (response.ok) {
+                    const data = await response.json();
+                    tasks = data || [];
+                    apiStatus.textContent = 'Conectado ✓';
+                    updateOutput(`API conectada - ${tasks.length} tarefas carregadas`);
+                    updateTaskCount();
+                    renderTasks();
+                    return true;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                apiStatus.textContent = 'Erro de conexão ✗';
+                updateOutput(`Erro na API: ${error.message}`);
+                return false;
+            }
+        }
+        
+        async function createTask(taskData) {
+            try {
+                updateOutput('Criando tarefa...');
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData)
+                });
+                
+                if (response.ok) {
+                    const newTask = await response.json();
+                    tasks.push(newTask);
+                    updateOutput(`Tarefa criada: ${newTask.title}`);
+                    updateTaskCount();
+                    renderTasks();
+                    return newTask;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Create Task Error:', error);
+                updateOutput(`Erro ao criar tarefa: ${error.message}`);
+                return null;
+            }
+        }
+        
+        // Render Functions
+        function renderTasks() {
+            console.log('Rendering tasks:', tasks);
+            
+            // Recent tasks (últimas 3)
+            if (recentTasks) {
+                const recent = tasks.slice(-3).reverse();
+                recentTasks.innerHTML = recent.length > 0 ?
+                    recent.map(task => `
+                        <div class="task-item">
+                            <div class="task-info">
+                                <h3>${task.title}</h3>
+                                <p>${task.date} ${task.time} - ${task.priority}</p>
+                            </div>
+                        </div>
+                    `).join('') :
+                    '<p>Nenhuma tarefa ainda</p>';
+            }
+            
+            // All tasks
+            if (allTasks) {
+                allTasks.innerHTML = tasks.length > 0 ?
+                    tasks.map(task => `
+                        <div class="task-item">
+                            <div class="task-info">
+                                <h3>${task.title}</h3>
+                                <p>${task.description || 'Sem descrição'}</p>
+                                <p>${task.date} ${task.time} - Prioridade: ${task.priority}</p>
+                            </div>
+                            <div class="task-actions">
+                                <button class="task-btn complete-btn" onclick="completeTask(${task.id})">Concluir</button>
+                                <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">Excluir</button>
+                            </div>
+                        </div>
+                    `).join('') :
+                    '<p>Nenhuma tarefa ainda</p>';
+            }
+        }
+        
+        // Calendar functions (mesmo do step 2)
+        function updateMonthDisplay() {
+            if (currentMonth) {
+                currentMonth.textContent = `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+            }
+        }
+        
+        function renderCalendar() {
+            if (!calendarGrid) return;
+            
+            console.log('Rendering calendar for:', currentDate);
+            
+            // Limpar dias existentes (manter cabeçalhos)
+            const headers = calendarGrid.querySelectorAll('.calendar-header');
+            calendarGrid.innerHTML = '';
+            headers.forEach(header => calendarGrid.appendChild(header));
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const today = new Date();
+            
+            // Primeiro dia do mês e último dia
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            // Dias da semana que começam (0 = domingo)
+            const startDay = firstDay.getDay();
+            
+            // Adicionar dias do mês anterior
+            const prevMonthLastDay = new Date(year, month, 0).getDate();
+            for (let i = startDay - 1; i >= 0; i--) {
+                const dayElement = createDayElement(prevMonthLastDay - i, true, false);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Adicionar dias do mês atual
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const isToday = (year === today.getFullYear() && 
+                               month === today.getMonth() && 
+                               day === today.getDate());
+                const dayElement = createDayElement(day, false, isToday);
+                calendarGrid.appendChild(dayElement);
+            }
+            
+            // Adicionar dias do próximo mês para completar a grade
+            const totalCells = calendarGrid.children.length - 7; // Subtrair cabeçalhos
+            const remainingCells = 42 - totalCells; // 6 semanas * 7 dias = 42
+            for (let day = 1; day <= remainingCells; day++) {
+                const dayElement = createDayElement(day, true, false);
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+        
+        function createDayElement(day, isOtherMonth, isToday) {
+            const dayElement = document.createElement('div');
+            dayElement.classList.add('calendar-day');
+            dayElement.textContent = day;
+            
+            if (isOtherMonth) {
+                dayElement.classList.add('other-month');
+            }
+            
+            if (isToday) {
+                dayElement.classList.add('today');
+            }
+            
+            // Verificar se tem tarefas neste dia
+            if (!isOtherMonth) {
+                const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasTasks = tasks.some(task => task.date === dateStr);
+                if (hasTasks) {
+                    dayElement.classList.add('has-tasks');
+                }
+            }
+            
+            // Event listener para clique no dia
+            dayElement.addEventListener('click', function() {
+                const dateStr = isOtherMonth ? 
+                    `${day} (outro mês)` : 
+                    `${day}/${currentDate.getMonth() + 1}/${currentDate.getFullYear()}`;
+                    
+                console.log('Day clicked:', dateStr);
+                updateOutput(`Dia clicado: ${dateStr}`);
+                updateStatus('Dia selecionado');
+                if (clickedDay) clickedDay.textContent = dateStr;
+                
+                // Remover seleção anterior
+                calendarGrid.querySelectorAll('.calendar-day.selected').forEach(el => {
+                    el.classList.remove('selected');
+                    el.style.background = '';
+                });
+                
+                // Adicionar seleção atual
+                if (!isOtherMonth) {
+                    dayElement.classList.add('selected');
+                    dayElement.style.background = '#4ecdc4';
+                    dayElement.style.color = 'white';
+                }
+            });
+            
+            return dayElement;
+        }
+        
+        // Event Listeners
+        if (btnDashboard) {
+            btnDashboard.addEventListener('click', function() {
+                console.log('Dashboard clicked');
+                showView('dashboard');
+                updateStatus('Dashboard ativo');
+                setActiveButton(btnDashboard);
+            });
+        }
+        
+        if (btnTasks) {
+            btnTasks.addEventListener('click', function() {
+                console.log('Tasks clicked');
+                showView('tasks');
+                updateStatus('Modo tarefas');
+                setActiveButton(btnTasks);
+            });
+        }
+        
+        if (btnProjects) {
+            btnProjects.addEventListener('click', function() {
+                console.log('Projects clicked');
+                showView('projects');
+                updateStatus('Modo projetos');
+                setActiveButton(btnProjects);
+            });
+        }
+        
+        if (prevMonth) {
+            prevMonth.addEventListener('click', function() {
+                console.log('Previous month clicked');
+                currentDate.setMonth(currentDate.getMonth() - 1);
+                updateMonthDisplay();
+                renderCalendar();
+                updateOutput('Mês anterior: ' + months[currentDate.getMonth()]);
+                updateStatus('Navegando calendário');
+            });
+        }
+        
+        if (nextMonth) {
+            nextMonth.addEventListener('click', function() {
+                console.log('Next month clicked');
+                currentDate.setMonth(currentDate.getMonth() + 1);
+                updateMonthDisplay();
+                renderCalendar();
+                updateOutput('Próximo mês: ' + months[currentDate.getMonth()]);
+                updateStatus('Navegando calendário');
+            });
+        }
+        
+        // Task form submission
+        if (taskForm) {
+            taskForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                console.log('Task form submitted');
+                
+                const taskData = {
+                    title: document.getElementById('task-title').value,
+                    description: document.getElementById('task-description').value,
+                    date: document.getElementById('task-date').value,
+                    time: document.getElementById('task-time').value,
+                    priority: document.getElementById('task-priority').value,
+                    category: document.getElementById('task-category').value,
+                    completed: false,
+                    reminder: false
+                };
+                
+                const newTask = await createTask(taskData);
+                if (newTask) {
+                    taskForm.reset();
+                    updateOutput(`Tarefa "${newTask.title}" criada com sucesso!`);
+                    renderCalendar(); // Re-render para mostrar indicadores
+                }
+            });
+        }
+        
+        // Funções globais para botões das tarefas
+        window.completeTask = function(taskId) {
+            console.log('Complete task:', taskId);
+            updateOutput(`Completar tarefa ${taskId} (em desenvolvimento)`);
+        };
+        
+        window.deleteTask = function(taskId) {
+            console.log('Delete task:', taskId);
+            updateOutput(`Excluir tarefa ${taskId} (em desenvolvimento)`);
+        };
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOM loaded - Step 3');
+            updateStatus('DOM carregado - Testando API');
+            updateOutput('Sistema iniciando - Conectando à API...');
+            updateMonthDisplay();
+            renderCalendar();
+            
+            const apiConnected = await testAPI();
+            if (apiConnected) {
+                updateStatus('Sistema pronto');
+                renderCalendar(); // Re-render com indicadores de tarefa
+            } else {
+                updateStatus('API offline - modo local');
+            }
+        });
+        
+        console.log('Step 3 script loaded successfully');
+    </script>
+</body>
+</html>

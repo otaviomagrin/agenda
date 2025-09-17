@@ -1,0 +1,115 @@
+PROJETO ELECTRON/JARVIS — VISÃO GERAL E PLANO DO MÓDULO DE VOZ
+
+Data: 2025-09-17
+Autor: (você)
+
+========================================
+PARTE 1 — O QUE JÁ FOI FEITO E O QUE ESTÁ PLANEJADO
+========================================
+
+Objetivo do projeto
+- Criar um “secretário” pessoal dentro do app Electron (Jarvis) para interagir por voz, executar ações no app com segurança e facilitar o dia a dia (agenda, tarefas, projetos, reuniões).
+- Uso pontual: o agente só “acorda” quando o app abre ou quando o usuário ativa o botão de microfone.
+
+Stack e estrutura (alto nível)
+- Electron (desktop) com servidor Express interno.
+  - Main Process: electron/main.js — cria a janela (BrowserWindow) e expõe rotas HTTP internas do app.
+  - Preload: electron/preload.js — ponte mínima para o renderer.
+  - Renderer/UI: index.html + app.js — interface e lógicas de exibição/dados.
+- Arquivos de dados JSON (tasks, projects, meetings) em data/ e/ou na raiz.
+- Backups em /backups.
+- Manifesto: package.json (inclui dependência "openai").
+
+O que já foi implementado (MVP de voz e utilitários)
+- Botão de microfone (“press-to-talk”) na topbar do index.html (id: voice-btn).
+  - Comportamento: 
+    - Pressionar: começa a gravar (MediaRecorder, audio/webm).
+    - Soltar: envia o áudio ao backend e reproduz TTS com a resposta.
+    - Segurança de privacidade: auto-stop se a janela perde foco (blur) ou fica oculta (visibilitychange); trilhas do microfone são liberadas após parar a gravação.
+- Backend de voz no Electron (Express): POST /api/voice/assist
+  - Recebe áudio base64 e orquestra o pipeline: STT (Whisper) → LLM (gpt-4o-mini) → TTS (tts-1, voz “alloy”) → retorna { transcript, replyText, audioBase64 }.
+  - Import do OpenAI guardado (não quebra se SDK não instalado/chave ausente — só retorna erro controlado).
+- Utilitário de tempo: GET /api/time para sincronização básica e health check simples.
+- Dependência adicionada: "openai" no package.json.
+
+Estado atual e pendências
+- Instalação de dependências pendente (recomendado Node 20 LTS; Node 22 quebra instalação do Electron em alguns cenários). 
+- OneDrive pode travar node_modules (EPERM). Sugerido pausar OneDrive ou mover o projeto para fora do OneDrive.
+- Variável de ambiente necessária: OPENAI_API_KEY (somente no backend).
+- Smoke test ainda não realizado devido ao ambiente.
+
+Planejado (próximos passos do projeto)
+1) Regularizar ambiente, instalar deps e fazer smoke test end-to-end (press-to-talk funcionando).
+2) Saudação automática na abertura + health-check em paralelo, com fila de TTS (sem sobreposição) e lógica “primeira vez do dia”.
+3) DSL de comandos (JSON) para ações no app (add_task, update_task, add_project, add_meeting, etc.) com confirmação e whitelist de ações.
+4) Endpoint seguro para execução de DSL: POST /api/agent/execute (validação de esquema).
+5) “Modo Reunião”: captura contínua, notas com Markdown e negrito para itens importantes, e aviso final “tudo anotado”.
+6) Configurações de voz (idioma, voz TTS, sensibilidade), horários silenciosos e opção de desativar saudação.
+7) Opcional: VAD toggle, custo-estimador, e suporte a pipeline local (sem nuvem) no futuro.
+
+Critérios de aceitação iniciais
+- Press-to-talk: resposta de voz em até ~2–3s em cenários normais.
+- Saudação abreviada + status: 2 falas curtas sem sobrepor.
+- Ações por DSL: só executam após confirmação explícita, log registrando a ação e resultado.
+
+
+========================================
+PARTE 2 — ONDE E COMO O MÓDULO DE VOZ ENTRA
+========================================
+
+Padrões de uso
+- Saudação na abertura (sem microfone): TTS com cumprimento por horário + pergunta curta se primeira vez do dia. Em paralelo, health-check silencioso. Depois, TTS com status: “todos os sistemas operacionais” (ou lista curta de problemas) e sugestões (agenda de hoje, onde paramos ontem, prioridades).
+- Comandos rápidos por voz (press-to-talk): já implementado; pode ganhar contexto (history/systemPrompt) e frases mais naturais.
+- Modo Reunião (“escute isso”): capta áudio contínuo; transcreve; resume em blocos; marca itens importantes com **negrito**; ao finalizar, confirma “tudo anotado”.
+- Execução segura de ações: o LLM produz um JSON (DSL) que o app valida e executa via endpoint seguro, com confirmação na UI.
+
+Pontos de integração (arquivos e rotas)
+- Frontend (index.html / app.js):
+  - Botão #voice-btn e script do assistente (já existentes) — acrescentar fila de TTS, UI para status/erros e atalhos.
+  - Componente “Modo Reunião”: indicador de gravação, botão parar, contador, link para notas. Pode usar desktopCapturer quando necessário (áudio do sistema).
+  - Tela de confirmação para executar DSL (mostra resumo do que será feito).
+- Backend (electron/main.js):
+  - /api/voice/assist (existente): expandir para aceitar opções (history, systemPrompt, idioma, voz TTS).
+  - /api/health (novo): checagem detalhada de arquivos/rotas/módulos/relógio/espaço.
+  - /api/agent/execute (novo): recebe JSON no DSL, valida com esquema e aplica alterações nos dados (com logs e transação simples).
+  - /api/meeting/start, /api/meeting/stop, /api/meeting/status (opcional): gerenciam modo reunião e acumulam notas.
+
+Pipeline de áudio (voz)
+- STT (Whisper ou Realtime) → LLM (resposta curta ou sumarização) → TTS (voz escolhida) → reprodução no renderer.
+- Fila de reprodução no renderer para evitar sobreposição.
+- Limitar payloads (JSON 25MB já configurado) e liberar trilhas do microfone após uso.
+
+DSL (contrato sugerido)
+- Exemplo:
+  {
+    "action": "add_task",
+    "title": "Ligar para João",
+    "due": "2025-09-18",
+    "priority": "alta",
+    "tags": ["reunião"]
+  }
+- Outras ações: update_task, add_project, add_meeting, set_priority, set_due_date, add_note… (apenas whitelist). Sempre com confirmação na UI.
+
+Segurança/Privacidade
+- Microfone só ativa por ação do usuário (press-to-talk) ou explicitamente no “modo reunião”, com indicação visual/sonora.
+- Chave OPENAI_API_KEY apenas no backend. Sem expor ao renderer.
+- Validação rígida do DSL + logs de execução. Possível “dry-run” e undo simples (quando aplicável).
+
+Erros e recuperação
+- Falha STT/LLM/TTS: mostrar toast e texto da resposta (quando houver). Repetir operação sob demanda.
+- Falha em DSL: exibir erro de validação; não executar nada.
+- Falha health-check: listar no TTS apenas 2–3 itens mais relevantes e oferecer correção ou abrir tela.
+
+Métricas e logs (mínimo)
+- logs/: registrar aberturas, execuções de DSL, início/fim de modo reunião, e erros do pipeline de voz.
+- Contadores básicos: número de usos de press-to-talk por sessão; duração do modo reunião; falhas por tipo.
+
+Testes (mínimo)
+- E2E press-to-talk: grava → transcreve → responde → fala.
+- Saudação + health-check: duas falas sem sobrepor; simular falhas.
+- DSL: executar “add_task” e refletir na UI/arquivo; verificar confirmação e logs.
+- Modo reunião: iniciar/parar; gerar notas com negrito; salvar e exibir.
+
+Observações finais
+- Melhor experiência natural vem do pipeline pago no desktop (baixa latência e controle total). 
+- No celular (ChatGPT Plus), dá para usar voz, mas iniciar o microfone automaticamente é limitado; notas ficam no GPT. Para trazer ao app, considerar automações (Actions/webhook) quando disponíveis.

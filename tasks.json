@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1758144770798,
+    "title": "Teste ARIA Integration",
+    "description": "Tarefa criada via teste de integra��o",
+    "completed": true,
+    "priority": "high",
+    "category": "geral",
+    "dueDate": null,
+    "createdAt": "2025-09-17T21:32:50.798Z",
+    "completedAt": "2025-09-17T21:32:56.701Z"
+  }
+]
